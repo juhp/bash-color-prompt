@@ -102,17 +102,11 @@ bcp_append() {
     _bcp_append_ansi "${5-0}"
 }
 
-# A function to show if the last command failed
-bcp_segment_status() {
-    local exit_code=$1
-    if [[ $exit_code -ne 0 ]]; then
-        bcp_append "[$exit_code]" "red"
-    fi
-}
+# ============================================================================
+# 3. Helper custom functions
+# ============================================================================
 
-# ============================================================================
-# 3. Git Integration (High Performance)
-# ============================================================================
+# * Git Integration *
 
 # Internal helper to check dirty state quickly
 # Returns: "1" if dirty, "" if clean
@@ -161,6 +155,24 @@ bcp_git_branch() {
         # Clean State
         bcp_append " ($branch)" "$clean_color"
     fi
+}
+
+# Other custom helpers #
+
+# A function to show if the last command failed
+bcp_segment_status() {
+    local exit_code=$1
+    if [[ $exit_code -ne 0 ]]; then
+        bcp_append "[$exit_code]" "red"
+    fi
+}
+
+# bcp_title "My Title"
+bcp_title() {
+    # \e]0; = Start window title sequence
+    # \a    = End sequence
+    # \[...\] is NOT needed here because this doesn't print to the buffer width
+    _bcp_buffer+="\e]0;$1\a"
 }
 
 # ============================================================================
@@ -242,12 +254,4 @@ bcp_init() {
             PROMPT_COMMAND="_bcp_save_ret; $PROMPT_COMMAND; _bcp_build_prompt"
         fi
     fi
-}
-
-# bcp_title "My Title"
-bcp_title() {
-    # \e]0; = Start window title sequence
-    # \a    = End sequence
-    # \[...\] is NOT needed here because this doesn't print to the buffer width
-    _bcp_buffer+="\e]0;$1\a"
 }
