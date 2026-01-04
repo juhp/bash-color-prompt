@@ -175,6 +175,15 @@ bcp_title() {
     _bcp_buffer+="\e]0;$1\a"
 }
 
+# Usage: bcp_shlvl [color] [prefix_char]
+bcp_shlvl() {
+    local color="${1:-magenta}"
+    local prefix="${2:-}"
+    if [[ "${SHLVL:-1}" -gt 1 ]]; then
+        bcp_append "${prefix}${SHLVL}" "$color"
+    fi
+}
+
 # ============================================================================
 # 4. The Engine (Driver)
 # ============================================================================
