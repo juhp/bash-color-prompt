@@ -192,6 +192,11 @@ bcp_duration() {
         else
             _bcp_timer_file="/tmp/bcp-timer-${USER}-${$}"
         fi
+        # Hook into PS0 for start-time capturing
+        if [[ "$PS0" != *"_bcp_on_exec"* ]]; then
+            PS0="\$(_bcp_on_exec)$PS0"
+        fi
+        trap 'rm -f "$_bcp_timer_file"' EXIT
     fi
 
     if [[ -z "$_bcp_last_duration_s" ]]; then
@@ -291,7 +296,7 @@ _bcp_save_ret() {
     # Capture Exit Code
     _bcp_saved_ret=$?
 
-    if [[ -f "$_bcp_timer_file" ]]; then
+    if [[ -r "$_bcp_timer_file" ]]; then
         local start; start=$(<"$_bcp_timer_file")
         rm -f "$_bcp_timer_file"
         local now; now=$(date +%s)
@@ -303,8 +308,7 @@ _bcp_save_ret() {
 
 # bcp_init
 # Activates the library. Call this once at the end of your .bashrc
-# Allows timing commands if "time" is passed
-# Usage: bcp_init [time]
+# Usage: bcp_init
 bcp_init() {
     # Bash 5.1+ supports PROMPT_COMMAND array
     if (( BASH_VERSINFO[0] > 5 )) || (( BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1 )); then
@@ -335,18 +339,4 @@ bcp_init() {
             PROMPT_COMMAND="_bcp_save_ret; $PROMPT_COMMAND; _bcp_build_prompt"
         fi
     fi
-
-    case "$1" in
-        time)
-            # NEW: Hook into PS0 for start-time capturing
-            # We append a command substitution that runs our helper but prints nothing.
-# 1. PS0 Timing Hook
-            if [[ "$PS0" != *"_bcp_on_exec"* ]]; then
-                PS0="\$(_bcp_on_exec)$PS0"
-            fi
-            # 2. Cleanup Hook
-            trap 'rm -f "$_bcp_timer_file"' EXIT
-            ;;
-        *) ;;
-    esac
 }

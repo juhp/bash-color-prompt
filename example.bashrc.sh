@@ -32,4 +32,4 @@ bcp_layout() {
     bcp_append "\n\$ " "default"
 }
 
-bcp_init time
+bcp_init
