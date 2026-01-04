@@ -183,6 +183,16 @@ bcp_shlvl() {
     fi
 }
 
+bcp_container() {
+    if [ -n "$container" ]; then
+        if [ "$DESKTOP_SESSION" = "gnome" ]; then
+            bcp_append "${1:-⬢}"
+        else
+            bcp_append "${1:-⬢ }"
+        fi
+    fi
+}
+
 # ============================================================================
 # 4. The Engine (Driver)
 # ============================================================================
