@@ -176,7 +176,7 @@ _bcp_default_layout() {
 _bcp_build_prompt() {
     # CRITICAL: Capture the exit code of the LAST command immediately.
     # If we run any other command before this, $? will be overwritten.
-    local last_exit_code=$?
+    local last_exit_code="${_bcp_saved_ret:-$?}"
 
     # 1. Reset the buffer for the new prompt
     _bcp_buffer=""
@@ -215,10 +215,10 @@ bcp_init() {
 
     # Check if PROMPT_COMMAND is empty to avoid leading semicolon
     if [[ -z "$PROMPT_COMMAND" ]]; then
-        PROMPT_COMMAND="_bcp_build_prompt"
+        PROMPT_COMMAND="_bcp_saved_ret=\$?; _bcp_build_prompt"
     else
         # Keep existing hooks (like history appending or venv activation)
-        PROMPT_COMMAND="$PROMPT_COMMAND; _bcp_build_prompt"
+        PROMPT_COMMAND="_bcp_saved_ret=\$?; $PROMPT_COMMAND; _bcp_build_prompt"
     fi
 }
 
