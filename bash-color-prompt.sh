@@ -34,6 +34,46 @@ _bcp_get_style_num() {
     esac
 }
 
+# _bcp_parse_tokens <input_string> <color_prefix>
+# Example: _bcp_parse_tokens "red;bold" "3"  -> returns "31;1;"
+# Example: _bcp_parse_tokens "blue;bold" "4" -> returns "44;1;"
+_bcp_parse_tokens() {
+    local input="$1"
+    local prefix="$2" # "3" for FG, "4" for BG, "" for Style
+    local output=""
+
+    # Split string by semicolon into an array
+    local IFS=';'
+    local tokens
+    read -ra tokens <<< "$input"
+
+    for token in "${tokens[@]}"; do
+        # 1. Is it a named COLOR? (red, blue, etc.)
+        local c_code
+        c_code=$(_bcp_get_ansi_num "$token")
+        if [[ -n "$c_code" ]]; then
+            # Apply the requested prefix (3 or 4) to the color code
+            # If prefix is empty (Style slot), defaults to FG (3) behavior or raw
+            output+="${prefix:-3}${c_code};"
+            continue
+        fi
+
+        # 2. Is it a named STYLE? (bold, underline, etc.)
+        local s_code
+        s_code=$(_bcp_get_style_num "$token")
+        if [[ -n "$s_code" ]]; then
+            # Styles never get the 3/4 color prefix
+            output+="${s_code};"
+            continue
+        fi
+
+        # 3. Fallback: Raw code or number
+        output+="${token};"
+    done
+
+    echo "$output"
+}
+
 # ============================================================================
 # 2. Public API
 # ============================================================================
@@ -41,22 +81,6 @@ _bcp_get_style_num() {
 # Internal buffer variable (do not touch manually)
 _bcp_buffer=""
 
-# ----------------------------------------------------------------------------
-# _bcp_append_ansi
-# Adds ANSI code to the prompt buffer with safe wrapping.
-#
-# Arguments:
-#   $1 : ANSI codes (without "\[\e["..."m\]")
-# ----------------------------------------------------------------------------
-_bcp_append_ansi() {
-    # If we have color/style codes, wrap them
-    if [[ -n "$1" ]]; then
-        # Remove trailing semicolon
-        # \033 is strictly more portable than \e
-        # wrap with \[ and \] tell Bash "this has 0 width"
-        _bcp_buffer+="\[\033[${1%;}m\]"
-    fi
-}
 
 # ----------------------------------------------------------------------------
 # bcp_append
@@ -68,38 +92,40 @@ _bcp_append_ansi() {
 #   $3 : Background Color (red, green, blue, etc.) [Optional]
 #   $4 : Style (bold, dim, reverse, underline)     [Optional]
 # ----------------------------------------------------------------------------
+# Usage: bcp_append <text> [fg] [bg] [style]
+# fg/bg/style can be:
+#   - Names: "red", "blue", "bold", "default"
+#   - Raw Codes: "1;33" (Bold Yellow), "38;5;208" (Orange), "101" (Hi-Intensity BG)
 bcp_append() {
     local text="$1"
-    local fg_name="${2:-}"
-    local bg_name="${3:-}"
-    local style_name="${4:-}"
+    local fg_in="${2:-}"    # Context: Foreground (Prefix 3)
+    local bg_in="${3:-}"    # Context: Background (Prefix 4)
+    local style_in="${4:-}" # Context: Style (No Prefix)
 
-    local ansi_seq=""
+    local ansi_sequence=""
 
-    # 1. Resolve Foreground (30-37)
-    local fg_code
-    fg_code=$(_bcp_get_ansi_num "$fg_name")
-    if [[ -n "$fg_code" ]]; then
-        ansi_seq+="3${fg_code};"
+    # 1. Parse Foreground Slot (Apply '3' to colors)
+    if [[ -n "$fg_in" ]]; then
+        ansi_sequence+=$(_bcp_parse_tokens "$fg_in" "3")
     fi
 
-    # 2. Resolve Background (40-47)
-    local bg_code
-    bg_code=$(_bcp_get_ansi_num "$bg_name")
-    if [[ -n "$bg_code" ]]; then
-        ansi_seq+="4${bg_code};"
+    # 2. Parse Background Slot (Apply '4' to colors)
+    if [[ -n "$bg_in" ]]; then
+        ansi_sequence+=$(_bcp_parse_tokens "$bg_in" "4")
     fi
 
-    # 3. Resolve Style
-    local style_code
-    style_code=$(_bcp_get_style_num "$style_name")
-    if [[ -n "$style_code" ]]; then
-        ansi_seq+="${style_code};"
+    # 3. Parse Style Slot (No prefix)
+    if [[ -n "$style_in" ]]; then
+        ansi_sequence+=$(_bcp_parse_tokens "$style_in" "")
     fi
 
-    _bcp_append_ansi "$ansi_seq"
-    _bcp_buffer+="${text}"
-    _bcp_append_ansi "${5-0}"
+    # 4. Assembly
+    if [[ -n "$ansi_sequence" ]]; then
+        ansi_sequence="${ansi_sequence%;}" # Strip trailing semicolon
+        _bcp_buffer+="\[\033[${ansi_sequence}m\]${text}\[\033[0m\]"
+    else
+        _bcp_buffer+="${text}"
+    fi
 }
 
 # ============================================================================
