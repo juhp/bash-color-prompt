@@ -42,6 +42,23 @@ _bcp_get_style_num() {
 _bcp_buffer=""
 
 # ----------------------------------------------------------------------------
+# _bcp_append_ansi
+# Adds ANSI code to the prompt buffer with safe wrapping.
+#
+# Arguments:
+#   $1 : ANSI codes (without "\[\e["..."m\]")
+# ----------------------------------------------------------------------------
+_bcp_append_ansi() {
+    # If we have color/style codes, wrap them
+    if [[ -n "$1" ]]; then
+        # Remove trailing semicolon
+        # \033 is strictly more portable than \e
+        # wrap with \[ and \] tell Bash "this has 0 width"
+        _bcp_buffer+="\[\033[${1%;}m\]"
+    fi
+}
+
+# ----------------------------------------------------------------------------
 # bcp_append
 # Adds text to the prompt buffer with safe color wrapping.
 #
