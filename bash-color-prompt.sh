@@ -6,22 +6,7 @@
 # Returns valid numeric codes (e.g., "red" -> "1") or empty string
 _bcp_get_ansi_num() {
     case "$1" in
-        black)   echo "0" ;;
-        red)     echo "1" ;;
-        green)   echo "2" ;;
-        yellow)  echo "3" ;;
-        blue)    echo "4" ;;
-        magenta) echo "5" ;;
-        cyan)    echo "6" ;;
-        white)   echo "7" ;;
-        default) echo "9" ;; # 39/49 is default
-        *)       echo ""  ;; # Unknown or empty
-    esac
-}
-
-# Translates style names to ANSI attribute codes
-_bcp_get_style_num() {
-    case "$1" in
+        [0-9]*)    echo "$1" ;;
         bold)      echo "1" ;;
         dim)       echo "2" ;;
         italic)    echo "3" ;;
@@ -30,16 +15,33 @@ _bcp_get_style_num() {
         rapid)     echo "6" ;;
         reverse)   echo "7" ;;
         hidden)    echo "8" ;;
-        *)         echo ""  ;;
+        black)     echo "30" ;;
+        red)       echo "31" ;;
+        green)     echo "32" ;;
+        yellow)    echo "33" ;;
+        blue)      echo "34" ;;
+        magenta)   echo "35" ;;
+        cyan)      echo "36" ;;
+        white)     echo "37" ;;
+        default)   echo "39" ;;
+        bgblack)   echo "40" ;;
+        bgred)     echo "41" ;;
+        bggreen)   echo "42" ;;
+        bgyellow)  echo "43" ;;
+        bgblue)    echo "44" ;;
+        bgmagenta) echo "45" ;;
+        bgcyan)    echo "46" ;;
+        bgwhite)   echo "47" ;;
+        bgdefault) echo "49" ;;
+        *)         echo ""  ;; # Unknown or empty
     esac
 }
 
-# _bcp_parse_tokens <input_string> <color_prefix>
-# Example: _bcp_parse_tokens "red;bold" "3"  -> returns "31;1;"
-# Example: _bcp_parse_tokens "blue;bold" "4" -> returns "44;1;"
+# _bcp_parse_tokens <input_string>
+# Example: _bcp_parse_tokens "red;bold"  -> returns "31;1;"
+# Example: _bcp_parse_tokens "bgblue;bold" -> returns "44;1;"
 _bcp_parse_tokens() {
     local input="$1"
-    local prefix="$2" # "3" for FG, "4" for BG, "" for Style
     local output=""
 
     # Split string by semicolon into an array
@@ -48,27 +50,12 @@ _bcp_parse_tokens() {
     read -ra tokens <<< "$input"
 
     for token in "${tokens[@]}"; do
-        # 1. Is it a named COLOR? (red, blue, etc.)
+        # Is it a named COLOR? (red, blue, etc.)
         local c_code
         c_code=$(_bcp_get_ansi_num "$token")
         if [[ -n "$c_code" ]]; then
-            # Apply the requested prefix (3 or 4) to the color code
-            # If prefix is empty (Style slot), defaults to FG (3) behavior or raw
-            output+="${prefix:-3}${c_code};"
-            continue
+            output+="${c_code};"
         fi
-
-        # 2. Is it a named STYLE? (bold, underline, etc.)
-        local s_code
-        s_code=$(_bcp_get_style_num "$token")
-        if [[ -n "$s_code" ]]; then
-            # Styles never get the 3/4 color prefix
-            output+="${s_code};"
-            continue
-        fi
-
-        # 3. Fallback: Raw code or number
-        output+="${token};"
     done
 
     echo "$output"
@@ -88,41 +75,27 @@ _bcp_buffer=""
 #
 # Arguments:
 #   $1 : Text to display
-#   $2 : Foreground Color (red, green, blue, etc.) [Optional]
-#   $3 : Background Color (red, green, blue, etc.) [Optional]
-#   $4 : Style (bold, dim, reverse, underline)     [Optional]
+#   $2 : ANSI styling (color/style names or codes) [Optional]
+#   $3 : Style end/reset (defaults to reset) [Optional]
 # ----------------------------------------------------------------------------
 # Usage: bcp_append <text> [fg] [bg] [style]
 # fg/bg/style can be:
 #   - Names: "red", "blue", "bold", "default"
-#   - Raw Codes: "1;33" (Bold Yellow), "38;5;208" (Orange), "101" (Hi-Intensity BG)
+#   - Raw Codes: "1;33" (Bold Yellow), "38;5;208" (Orange), "101" (Hi-BG)
 bcp_append() {
     local text="$1"
-    local fg_in="${2:-}"    # Context: Foreground (Prefix 3)
-    local bg_in="${3:-}"    # Context: Background (Prefix 4)
-    local style_in="${4:-}" # Context: Style (No Prefix)
+    local ansi_input="${2:-}"
 
     local ansi_sequence=""
 
-    # 1. Parse Foreground Slot (Apply '3' to colors)
-    if [[ -n "$fg_in" ]]; then
-        ansi_sequence+=$(_bcp_parse_tokens "$fg_in" "3")
+    # Parse ANSI names or codes
+    if [[ -n "$ansi_input" ]]; then
+        ansi_sequence+=$(_bcp_parse_tokens "$ansi_input")
     fi
-
-    # 2. Parse Background Slot (Apply '4' to colors)
-    if [[ -n "$bg_in" ]]; then
-        ansi_sequence+=$(_bcp_parse_tokens "$bg_in" "4")
-    fi
-
-    # 3. Parse Style Slot (No prefix)
-    if [[ -n "$style_in" ]]; then
-        ansi_sequence+=$(_bcp_parse_tokens "$style_in" "")
-    fi
-
-    # 4. Assembly
+    # Assembly
     if [[ -n "$ansi_sequence" ]]; then
-        ansi_sequence="${ansi_sequence%;}" # Strip trailing semicolon
-        _bcp_buffer+="\[\033[${ansi_sequence}m\]${text}\[\033[0m\]"
+        # Strip trailing semicolon
+        _bcp_buffer+="\[\033[${ansi_sequence%;}m\]${text}\[\033[${3-0}m\]"
     else
         _bcp_buffer+="${text}"
     fi
@@ -218,9 +191,9 @@ bcp_shlvl() {
 # Used if the user hasn't defined their own bcp_layout yet.
 _bcp_default_layout() {
     local exit_code=$1
-    bcp_append "\u@\h" "green" "" "bold"
+    bcp_append "\u@\h" "green;bold"
     bcp_append ":"
-    bcp_append "\w" "green" "" "bold"
+    bcp_append "\w" "green;bold"
     bcp_segment_status "$exit_code"
     bcp_append "\$ "
 }
@@ -278,7 +251,6 @@ bcp_init() {
         fi
 
     else
-
         # Prevent double-sourcing
         if [[ "$PROMPT_COMMAND" == *"_bcp_build_prompt"* ]]; then return; fi
 

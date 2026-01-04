@@ -31,6 +31,8 @@ Before adding to your `bashrc`, you can test it out in bash with just:
 `source example.bashrc.sh`
 (or `source bash-color-prompt.sh` and then `bcp_init`).
 
+Note that bcp's functions may still be subject to change at this time.
+
 ## Help and Contribute
 Please open an issue in <https://github.com/juhp/bash-color-prompt>.
 

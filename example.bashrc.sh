@@ -7,7 +7,7 @@ bcp_layout() {
     local user_color="green"
     if [[ $EUID -eq 0 ]]; then user_color="red"; fi
 
-    bcp_append "\u@\h" "$user_color" "default" "bold"
+    bcp_append "\u@\h" "$user_color;bgdefault;bold"
     bcp_shlvl "magenta" "^"
     bcp_append " "
 
@@ -22,7 +22,7 @@ bcp_layout() {
 
     # -- custom status indicator --
     if [[ $exit_code -ne 0 ]]; then
-        bcp_append " ✘$exit_code" "red" "default" "bold"
+        bcp_append " ✘$exit_code" "red;bgdefault;bold"
     fi
 
     # -- Segment: The actual prompt char --
