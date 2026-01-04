@@ -166,6 +166,17 @@ bcp_git_branch() {
 # 4. The Engine (Driver)
 # ============================================================================
 
+# Default layout (Fallback)
+# Used if the user hasn't defined their own bcp_layout yet.
+_bcp_default_layout() {
+    local exit_code=$1
+    bcp_append "\u@\h" "green" "" "bold"
+    bcp_append ":"
+    bcp_append "\w" "green" "" "bold"
+    bcp_segment_status "$exit_code"
+    bcp_append "\$ "
+}
+
 # Internal driver function called every time the prompt needs refreshing
 _bcp_build_prompt() {
     # CRITICAL: Capture the exit code of the LAST command immediately.
@@ -187,18 +198,6 @@ _bcp_build_prompt() {
     # 3. Apply the buffer to PS1
     # We do not use 'export' here to avoid unnecessary environment overhead
     PS1="${_bcp_buffer}"
-}
-
-# Default layout (Fallback)
-# Used if the user hasn't defined their own bcp_layout yet.
-_bcp_default_layout() {
-    local exit_code=$1
-    bcp_append "\u@\h " "green"
-    bcp_append "\w " "blue"
-    if [[ $exit_code -ne 0 ]]; then
-        bcp_append "[$exit_code] " "red"
-    fi
-    bcp_append "\$ "
 }
 
 # ============================================================================
