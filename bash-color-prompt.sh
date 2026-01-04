@@ -205,26 +205,42 @@ _bcp_build_prompt() {
 # 5. Initialization
 # ============================================================================
 
+_bcp_save_ret() {
+    _bcp_saved_ret=$?
+}
+
 # bcp_init
 # Activates the library. Call this once at the end of your .bashrc
 bcp_init() {
-    # 1. Prevent double-sourcing loop
-    # If our function is already in PROMPT_COMMAND, do nothing.
-    if [[ "$PROMPT_COMMAND" == *"_bcp_build_prompt"* ]]; then
-        return
-    fi
+    # Bash 5.1+ supports PROMPT_COMMAND array
+    if (( BASH_VERSINFO[0] > 5 )) || (( BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1 )); then
+        # convert to an array if necessary
+        if [[ "$(declare -p PROMPT_COMMAND 2>/dev/null)" != "declare -a"* ]]; then
+            PROMPT_COMMAND=(${PROMPT_COMMAND:+"$PROMPT_COMMAND"})
+        fi
 
-    # 2. Append to PROMPT_COMMAND
-    # We prepend to ensure we run before other hooks might clear the screen,
-    # but strictly speaking, order matters based on what else is installed.
-    # A safe bet is usually to append (run last) so our PS1 set is the final word.
+        # Prepend our Capture Function (so it runs first)
+        # We ensure it isn't already there to prevent dupes
+        if [[ "${PROMPT_COMMAND[*]}" != *"_bcp_save_ret"* ]]; then
+            PROMPT_COMMAND=("_bcp_save_ret" "${PROMPT_COMMAND[@]}")
+        fi
 
-    # Check if PROMPT_COMMAND is empty to avoid leading semicolon
-    if [[ -z "$PROMPT_COMMAND" ]]; then
-        PROMPT_COMMAND="_bcp_saved_ret=\$?; _bcp_build_prompt"
+        # Append our Build Function (so it sets PS1 last)
+        if [[ "${PROMPT_COMMAND[*]}" != *"_bcp_build_prompt"* ]]; then
+            PROMPT_COMMAND+=("_bcp_build_prompt")
+        fi
+
     else
-        # Keep existing hooks (like history appending or venv activation)
-        PROMPT_COMMAND="_bcp_saved_ret=\$?; $PROMPT_COMMAND; _bcp_build_prompt"
+
+        # Prevent double-sourcing
+        if [[ "$PROMPT_COMMAND" == *"_bcp_build_prompt"* ]]; then return; fi
+
+        if [[ -z "$PROMPT_COMMAND" ]]; then
+            PROMPT_COMMAND="_bcp_save_ret; _bcp_build_prompt"
+        else
+            # Inject capture at start, builder at end
+            PROMPT_COMMAND="_bcp_save_ret; $PROMPT_COMMAND; _bcp_build_prompt"
+        fi
     fi
 }
 
