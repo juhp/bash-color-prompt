@@ -61,13 +61,21 @@ _bcp_parse_tokens() {
     echo "$output"
 }
 
+# Internal variable (do not touch)
+_bcp_timer_file=""
+
+# Triggered by PS0 (before command runs)
+_bcp_on_exec() {
+    # Capture start time
+    date +%s > "$_bcp_timer_file"
+}
+
 # ============================================================================
 # 2. Public API
 # ============================================================================
 
-# Internal buffer variable (do not touch manually)
+# Internal variable (do not touch)
 _bcp_buffer=""
-
 
 # ----------------------------------------------------------------------------
 # bcp_append
@@ -85,7 +93,6 @@ _bcp_buffer=""
 bcp_append() {
     local text="$1"
     local ansi_input="${2:-}"
-
     local ansi_sequence=""
 
     # Parse ANSI names or codes
@@ -174,6 +181,48 @@ bcp_title() {
     _bcp_buffer+="\e]0;$1\a"
 }
 
+# Usage: bcp_duration [min_ms] [color] [prefix]
+# Example: bcp_duration 2 "yellow" "took " "\n"
+# (Only shows if command took longer than 2000ms / 2 seconds)
+bcp_duration() {
+    if [[ -z "$_bcp_timer_file" ]]; then
+        # Determine the best location for the timer file
+        if [[ -n "$XDG_RUNTIME_DIR" && -d "$XDG_RUNTIME_DIR" ]]; then
+            _bcp_timer_file="${XDG_RUNTIME_DIR}/bcp-timer-${$}"
+        else
+            _bcp_timer_file="/tmp/bcp-timer-${USER}-${$}"
+        fi
+    fi
+
+    if [[ -z "$_bcp_last_duration_s" ]]; then
+        return
+    fi
+
+    local threshold_s="${1:-2}" # Default: only show if > 2s
+    local color="${2:-yellow}"
+    local prefix="${3:-took }"
+    local suffix="${4:-}"
+
+    local dur=$_bcp_last_duration_s
+
+    # If duration is less than threshold, do nothing
+    if (( dur < threshold_s )); then
+        return
+    fi
+
+    local human_time=""
+    # Formatting Logic
+    if (( dur >= 60 )); then
+        local min=$(( dur / 60 ))
+        human_time+="${min}m "
+    fi
+    local sec=$(( dur % 60 ))
+    human_time+="${sec}s"
+    _bcp_last_duration_s=""
+
+    bcp_append "${prefix}${human_time}${suffix}" "$color"
+}
+
 # Usage: bcp_shlvl [color] [prefix_char]
 bcp_shlvl() {
     local color="${1:-magenta}"
@@ -235,12 +284,27 @@ _bcp_build_prompt() {
 # 5. Initialization
 # ============================================================================
 
+# Internal variable (do not touch)
+_bcp_last_duration_s=""
+
 _bcp_save_ret() {
+    # Capture Exit Code
     _bcp_saved_ret=$?
+
+    if [[ -f "$_bcp_timer_file" ]]; then
+        local start; start=$(<"$_bcp_timer_file")
+        rm -f "$_bcp_timer_file"
+        local now; now=$(date +%s)
+        _bcp_last_duration_s=$((now - start))
+    else
+        _bcp_last_duration_s=""
+    fi
 }
 
 # bcp_init
 # Activates the library. Call this once at the end of your .bashrc
+# Allows timing commands if "time" is passed
+# Usage: bcp_init [time]
 bcp_init() {
     # Bash 5.1+ supports PROMPT_COMMAND array
     if (( BASH_VERSINFO[0] > 5 )) || (( BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1 )); then
@@ -271,4 +335,18 @@ bcp_init() {
             PROMPT_COMMAND="_bcp_save_ret; $PROMPT_COMMAND; _bcp_build_prompt"
         fi
     fi
+
+    case "$1" in
+        time)
+            # NEW: Hook into PS0 for start-time capturing
+            # We append a command substitution that runs our helper but prints nothing.
+# 1. PS0 Timing Hook
+            if [[ "$PS0" != *"_bcp_on_exec"* ]]; then
+                PS0="\$(_bcp_on_exec)$PS0"
+            fi
+            # 2. Cleanup Hook
+            trap 'rm -f "$_bcp_timer_file"' EXIT
+            ;;
+        *) ;;
+    esac
 }

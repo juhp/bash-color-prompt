@@ -3,6 +3,7 @@ source bash-color-prompt.sh
 bcp_layout() {
     local exit_code=$1
 
+    bcp_duration 1 "yellow" "took "  "\n"
     bcp_append "\t \D{%b %-d (%a)}\n" "dim;reverse"
 
     # -- Segment: User+Host (Green if user, Red if Root) --
@@ -31,4 +32,4 @@ bcp_layout() {
     bcp_append "\n\$ " "default"
 }
 
-bcp_init
+bcp_init time
