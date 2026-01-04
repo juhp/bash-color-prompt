@@ -24,8 +24,10 @@ _bcp_get_style_num() {
     case "$1" in
         bold)      echo "1" ;;
         dim)       echo "2" ;;
+        italic)    echo "3" ;;
         underline) echo "4" ;;
         blink)     echo "5" ;;
+        rapid)     echo "6" ;;
         reverse)   echo "7" ;;
         hidden)    echo "8" ;;
         *)         echo ""  ;;
