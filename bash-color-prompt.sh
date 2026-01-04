@@ -1,0 +1,237 @@
+# ============================================================================
+# 1. Internal Helpers (Private)
+# ============================================================================
+
+# Translates color names to ANSI numbers
+# Returns valid numeric codes (e.g., "red" -> "1") or empty string
+_bcp_get_ansi_num() {
+    case "$1" in
+        black)   echo "0" ;;
+        red)     echo "1" ;;
+        green)   echo "2" ;;
+        yellow)  echo "3" ;;
+        blue)    echo "4" ;;
+        magenta) echo "5" ;;
+        cyan)    echo "6" ;;
+        white)   echo "7" ;;
+        default) echo "9" ;; # 39/49 is default
+        *)       echo ""  ;; # Unknown or empty
+    esac
+}
+
+# Translates style names to ANSI attribute codes
+_bcp_get_style_num() {
+    case "$1" in
+        bold)      echo "1" ;;
+        dim)       echo "2" ;;
+        underline) echo "4" ;;
+        blink)     echo "5" ;;
+        reverse)   echo "7" ;;
+        hidden)    echo "8" ;;
+        *)         echo ""  ;;
+    esac
+}
+
+# ============================================================================
+# 2. Public API
+# ============================================================================
+
+# Internal buffer variable (do not touch manually)
+_bcp_buffer=""
+
+# ----------------------------------------------------------------------------
+# bcp_append
+# Adds text to the prompt buffer with safe color wrapping.
+#
+# Arguments:
+#   $1 : Text to display
+#   $2 : Foreground Color (red, green, blue, etc.) [Optional]
+#   $3 : Background Color (red, green, blue, etc.) [Optional]
+#   $4 : Style (bold, dim, reverse, underline)     [Optional]
+# ----------------------------------------------------------------------------
+bcp_append() {
+    local text="$1"
+    local fg_name="${2:-}"
+    local bg_name="${3:-}"
+    local style_name="${4:-}"
+
+    local ansi_sequence=""
+
+    # 1. Resolve Foreground (30-37)
+    local fg_code
+    fg_code=$(_bcp_get_ansi_num "$fg_name")
+    if [[ -n "$fg_code" ]]; then
+        ansi_sequence+="3${fg_code};"
+    fi
+
+    # 2. Resolve Background (40-47)
+    local bg_code
+    bg_code=$(_bcp_get_ansi_num "$bg_name")
+    if [[ -n "$bg_code" ]]; then
+        ansi_sequence+="4${bg_code};"
+    fi
+
+    # 3. Resolve Style
+    local style_code
+    style_code=$(_bcp_get_style_num "$style_name")
+    if [[ -n "$style_code" ]]; then
+        ansi_sequence+="${style_code};"
+    fi
+
+    # 4. Construct the Final String
+    # If we have color/style codes, wrap them in \[...\]
+    if [[ -n "$ansi_sequence" ]]; then
+        # Remove trailing semicolon
+        ansi_sequence="${ansi_sequence%;}"
+
+        # \033 is strictly more portable than \e
+        # \[ and \] tell Bash "this has 0 width" to fix line wrapping
+        local start_seq="\[\033[${ansi_sequence}m\]"
+        local reset_seq="\[\033[0m\]"
+
+        _bcp_buffer+="${start_seq}${text}${reset_seq}"
+    else
+        # No color, just append text
+        _bcp_buffer+="${text}"
+    fi
+}
+
+# A function to check if the last command failed
+bcp_segment_status() {
+    local exit_code=$1
+
+    if [[ $exit_code -eq 0 ]]; then
+        # Success: Green checkmark
+        bcp_append "✔" "green"
+    else
+        # Failure: Red X with bold text
+        bcp_append "✘ ${exit_code}" "red" "" "bold"
+    fi
+}
+
+# ============================================================================
+# 3. Git Integration (High Performance)
+# ============================================================================
+
+# Internal helper to check dirty state quickly
+# Returns: "1" if dirty, "" if clean
+_bcp_is_git_dirty() {
+    # --porcelain: easy to parse
+    # --untracked-files=no: huge speedup in large repos (optional, but recommended for prompts)
+    # --ignore-submodules: prevents hanging on network checks for submodules
+
+    local status
+    status=$(git status --porcelain --ignore-submodules=dirty 2>/dev/null | head -n1)
+
+    if [[ -n "$status" ]]; then
+        echo "1"
+    fi
+}
+
+# ----------------------------------------------------------------------------
+# bcp_git_branch
+# Appends the current git branch and status symbol.
+#
+# Arguments:
+#   $1 : Clean Color (default: green)
+#   $2 : Dirty Color (default: red)
+# ----------------------------------------------------------------------------
+bcp_git_branch() {
+    local clean_color="${1:-green}"
+    local dirty_color="${2:-red}"
+
+    # 1. Get the branch name (fastest method)
+    # 2> /dev/null suppresses error if not in a git repo
+    local branch
+    branch=$(git symbolic-ref --short HEAD 2>/dev/null) || \
+    branch=$(git rev-parse --short HEAD 2>/dev/null)
+
+    # If $branch is empty, we aren't in a git repo -> exit immediately
+    if [[ -z "$branch" ]]; then
+        return
+    fi
+
+    # 2. Check Dirty State
+    if [[ -n "$(_bcp_is_git_dirty)" ]]; then
+        # Dirty State: Branch name + Dirty Marker
+        # You can customize the symbol here (e.g., *, ±, ✗)
+        bcp_append " ($branch*)" "$dirty_color"
+    else
+        # Clean State
+        bcp_append " ($branch)" "$clean_color"
+    fi
+}
+
+# ============================================================================
+# 4. The Engine (Driver)
+# ============================================================================
+
+# Internal driver function called every time the prompt needs refreshing
+_bcp_build_prompt() {
+    # CRITICAL: Capture the exit code of the LAST command immediately.
+    # If we run any other command before this, $? will be overwritten.
+    local last_exit_code=$?
+
+    # 1. Reset the buffer for the new prompt
+    _bcp_buffer=""
+
+    # 2. Call the user's layout function (Dependency Injection)
+    if declare -f bcp_layout > /dev/null; then
+        # Pass the exit code so the user can display it
+        bcp_layout "$last_exit_code"
+    else
+        # Fallback: If user didn't define a layout, use a safe default
+        _bcp_default_layout "$last_exit_code"
+    fi
+
+    # 3. Apply the buffer to PS1
+    # We do not use 'export' here to avoid unnecessary environment overhead
+    PS1="${_bcp_buffer}"
+}
+
+# Default layout (Fallback)
+# Used if the user hasn't defined their own bcp_layout yet.
+_bcp_default_layout() {
+    local exit_code=$1
+    bcp_append "\u@\h " "green"
+    bcp_append "\w " "blue"
+    if [[ $exit_code -ne 0 ]]; then
+        bcp_append "[$exit_code] " "red"
+    fi
+    bcp_append "\$ "
+}
+
+# ============================================================================
+# 5. Initialization
+# ============================================================================
+
+# bcp_init
+# Activates the library. Call this once at the end of your .bashrc
+bcp_init() {
+    # 1. Prevent double-sourcing loop
+    # If our function is already in PROMPT_COMMAND, do nothing.
+    if [[ "$PROMPT_COMMAND" == *"_bcp_build_prompt"* ]]; then
+        return
+    fi
+
+    # 2. Append to PROMPT_COMMAND
+    # We prepend to ensure we run before other hooks might clear the screen,
+    # but strictly speaking, order matters based on what else is installed.
+    # A safe bet is usually to append (run last) so our PS1 set is the final word.
+
+    # Check if PROMPT_COMMAND is empty to avoid leading semicolon
+    if [[ -z "$PROMPT_COMMAND" ]]; then
+        PROMPT_COMMAND="_bcp_build_prompt"
+    else
+        # Keep existing hooks (like history appending or venv activation)
+        PROMPT_COMMAND="$PROMPT_COMMAND; _bcp_build_prompt"
+    fi
+}
+
+# bcp_title "My Title"
+bcp_title() {
+    # \e]0; = Start window title sequence
+    # \a    = End sequence
+    # \[...\] is NOT needed here because this doesn't print to the buffer width
+    _bcp_buffer+="\e]0;$1\a"
+}
