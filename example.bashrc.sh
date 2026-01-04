@@ -1,4 +1,4 @@
-#source /path/to/bcp-lib.sh
+source bash-color-prompt.sh
 
 bcp_layout() {
     local exit_code=$1
