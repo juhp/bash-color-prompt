@@ -3,6 +3,8 @@ source bash-color-prompt.sh
 bcp_layout() {
     local exit_code=$1
 
+    bcp_append "\t \D{%b %-d (%a)}\n" "dim;reverse"
+
     # -- Segment: User+Host (Green if user, Red if Root) --
     local user_color="green"
     if [[ $EUID -eq 0 ]]; then user_color="red"; fi
