@@ -96,16 +96,11 @@ bcp_append() {
     fi
 }
 
-# A function to check if the last command failed
+# A function to show if the last command failed
 bcp_segment_status() {
     local exit_code=$1
-
-    if [[ $exit_code -eq 0 ]]; then
-        # Success: Green checkmark
-        bcp_append "✔" "green"
-    else
-        # Failure: Red X with bold text
-        bcp_append "✘ ${exit_code}" "red" "" "bold"
+    if [[ $exit_code -ne 0 ]]; then
+        bcp_append "[$exit_code]" "red"
     fi
 }
 
