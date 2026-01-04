@@ -74,45 +74,32 @@ bcp_append() {
     local bg_name="${3:-}"
     local style_name="${4:-}"
 
-    local ansi_sequence=""
+    local ansi_seq=""
 
     # 1. Resolve Foreground (30-37)
     local fg_code
     fg_code=$(_bcp_get_ansi_num "$fg_name")
     if [[ -n "$fg_code" ]]; then
-        ansi_sequence+="3${fg_code};"
+        ansi_seq+="3${fg_code};"
     fi
 
     # 2. Resolve Background (40-47)
     local bg_code
     bg_code=$(_bcp_get_ansi_num "$bg_name")
     if [[ -n "$bg_code" ]]; then
-        ansi_sequence+="4${bg_code};"
+        ansi_seq+="4${bg_code};"
     fi
 
     # 3. Resolve Style
     local style_code
     style_code=$(_bcp_get_style_num "$style_name")
     if [[ -n "$style_code" ]]; then
-        ansi_sequence+="${style_code};"
+        ansi_seq+="${style_code};"
     fi
 
-    # 4. Construct the Final String
-    # If we have color/style codes, wrap them in \[...\]
-    if [[ -n "$ansi_sequence" ]]; then
-        # Remove trailing semicolon
-        ansi_sequence="${ansi_sequence%;}"
-
-        # \033 is strictly more portable than \e
-        # \[ and \] tell Bash "this has 0 width" to fix line wrapping
-        local start_seq="\[\033[${ansi_sequence}m\]"
-        local reset_seq="\[\033[0m\]"
-
-        _bcp_buffer+="${start_seq}${text}${reset_seq}"
-    else
-        # No color, just append text
-        _bcp_buffer+="${text}"
-    fi
+    _bcp_append_ansi "$ansi_seq"
+    _bcp_buffer+="${text}"
+    _bcp_append_ansi "${5-0}"
 }
 
 # A function to show if the last command failed
