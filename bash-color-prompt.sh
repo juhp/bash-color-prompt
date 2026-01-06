@@ -1,6 +1,6 @@
-# ============================================================================
-# 1. Internal Helpers (Private)
-# ============================================================================
+export BASH_COLOR_PROMPT_VERSION=0.90
+
+# Internal functions
 
 # Translates color names to ANSI numbers
 # Returns valid numeric codes (e.g., "red" -> "1") or empty string
@@ -70,9 +70,7 @@ _bcp_on_exec() {
     date +%s > "$_bcp_timer_file"
 }
 
-# ============================================================================
-# 2. Public API
-# ============================================================================
+# Public API
 
 # Internal variable (do not touch)
 _bcp_buffer=""
@@ -108,9 +106,7 @@ bcp_append() {
     fi
 }
 
-# ============================================================================
-# 3. Helper custom functions
-# ============================================================================
+# Helper custom functions
 
 # * Git Integration *
 
@@ -244,9 +240,7 @@ bcp_container() {
     fi
 }
 
-# ============================================================================
-# 4. The Engine (Driver)
-# ============================================================================
+# The Engine (Driver)
 
 # Default layout (Fallback)
 # Used if the user hasn't defined their own bcp_layout yet.
@@ -283,9 +277,7 @@ _bcp_build_prompt() {
     PS1="${_bcp_buffer}"
 }
 
-# ============================================================================
-# 5. Initialization
-# ============================================================================
+# Initialization
 
 # Internal variable (do not touch)
 _bcp_last_duration_s=""
