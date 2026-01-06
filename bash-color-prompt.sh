@@ -134,13 +134,17 @@ _bcp_is_git_dirty() {
 #   $1 : Clean Color (default: green)
 #   $2 : Dirty Color (default: red)
 # ----------------------------------------------------------------------------
+# FIXME maybe separate or add bcp_git_status
 bcp_git_branch() {
+    # FIXME better defaults?
     local clean_color="${1:-green}"
     local dirty_color="${2:-red}"
 
-    # 1. Get the branch name (fastest method)
-    # 2> /dev/null suppresses error if not in a git repo
+    # Get the branch name (fastest method)
+    # suppresses errors if not in a git repo
     local branch
+    # branch or commit
+    # (latter can fail right after git init (no commit))
     branch=$(git symbolic-ref --short HEAD 2>/dev/null) || \
     branch=$(git rev-parse --short HEAD 2>/dev/null)
 
