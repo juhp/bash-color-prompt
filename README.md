@@ -24,7 +24,7 @@ It could be made to support default prompts for other OS's later perhaps.
 Users can optionally define `bcp_layout()` to  specify
 a custom prompt using `bpc_append`, etc, to their liking.
 
-See `example.bashrc.sh` for an example.
+See [example.bashrc.sh](https://github.com/juhp/bash-color-prompt/blob/main/example.bashrc.sh) for a custom example.
 
 ## Try it
 Before adding to your `bashrc`, you can test it out in bash with just:
