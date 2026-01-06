@@ -6,7 +6,9 @@ export BASH_COLOR_PROMPT_VERSION=0.90
 # Returns valid numeric codes (e.g., "red" -> "1") or empty string
 _bcp_get_ansi_num() {
     case "$1" in
-        [0-9]*)    echo "$1" ;;
+        [0-9])     echo "$1" ;;
+        [1-9][0-9]) echo "$1" ;;
+        [1-2][0-9][0-9]) echo "$1" ;;
         bold)      echo "1" ;;
         dim)       echo "2" ;;
         italic)    echo "3" ;;
