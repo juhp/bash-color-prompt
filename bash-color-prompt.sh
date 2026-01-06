@@ -117,12 +117,9 @@ bcp_append() {
 # Internal helper to check dirty state quickly
 # Returns: "1" if dirty, "" if clean
 _bcp_is_git_dirty() {
-    # --porcelain: easy to parse
-    # --untracked-files=no: huge speedup in large repos (optional, but recommended for prompts)
     # --ignore-submodules: prevents hanging on network checks for submodules
-
     local status
-    status=$(git status --porcelain --ignore-submodules=dirty 2>/dev/null | head -n1)
+    status=$(git status --porcelain --untracked-files=no --ignore-submodules=dirty 2>/dev/null | head -n1)
 
     if [[ -n "$status" ]]; then
         echo "1"
