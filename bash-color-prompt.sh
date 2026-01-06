@@ -131,20 +131,20 @@ _bcp_is_git_dirty() {
 # Appends the current git branch and status symbol.
 #
 # Arguments:
-#   $1 : Clean Color (default: green)
-#   $2 : Dirty Color (default: red)
+#   $1 : prefix before branch
+#   $2 : Clean Color (default: green)
+#   $3 : Dirty Color (default: red)
 # ----------------------------------------------------------------------------
 # FIXME maybe separate or add bcp_git_status
 bcp_git_branch() {
+    local prefix="$1"
     # FIXME better defaults?
-    local clean_color="${1:-green}"
-    local dirty_color="${2:-red}"
+    local clean_color="${2:-green}"
+    local dirty_color="${3:-red}"
 
-    # Get the branch name (fastest method)
-    # suppresses errors if not in a git repo
+    # Get the branch name
     local branch
-    # branch or commit
-    # (latter can fail right after git init (no commit))
+    # branch or commit (latter can fail right after git init (no commit))
     branch=$(git symbolic-ref --short HEAD 2>/dev/null) || \
     branch=$(git rev-parse --short HEAD 2>/dev/null)
 
@@ -153,14 +153,10 @@ bcp_git_branch() {
         return
     fi
 
-    # 2. Check Dirty State
     if [[ -n "$(_bcp_is_git_dirty)" ]]; then
-        # Dirty State: Branch name + Dirty Marker
-        # You can customize the symbol here (e.g., *, ±, ✗)
-        bcp_append "($branch*)" "$dirty_color"
+        bcp_append "$prefix($branch*)" "$dirty_color"
     else
-        # Clean State
-        bcp_append "($branch)" "$clean_color"
+        bcp_append "$prefix($branch)" "$clean_color"
     fi
 }
 

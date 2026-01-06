@@ -21,7 +21,7 @@ bcp_layout() {
     # bcp_title "\u@\h"
 
     # -- Segment: Git Status --
-    bcp_git_branch "magenta" "yellow"
+    bcp_git_branch " " "magenta" "yellow"
 
     # -- custom status indicator --
     if [[ $exit_code -ne 0 ]]; then
