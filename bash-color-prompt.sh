@@ -108,6 +108,16 @@ bcp_append() {
     fi
 }
 
+_bcp_append_raw() {
+    local text="$1"
+    local ansi="${2:-}"
+    if [[ -n "$ansi" ]]; then
+        _bcp_buffer+="\[\e[${ansi%;}m\]${text}\[\e[${3-0}m\]"
+    else
+        _bcp_buffer+="${text}"
+    fi
+}
+
 # Helper custom functions
 
 # * Git Integration *
@@ -253,6 +263,17 @@ _bcp_default_layout() {
     bcp_append "\u@\h" "$color;bold"
     bcp_append ":"
     bcp_append "\w" "$color;bold"
+    bcp_append "\$ "
+}
+
+# Default static layout
+_bcp_static_layout() {
+    local color="33"
+    # 0.7 used [[ "$USER" = "root" ]]
+    if [[ $EUID -eq 0 ]]; then color="35"; fi
+    _bcp_append_raw "\u@\h" "\${PROMPT_COLOR:-$color};1"
+    bcp_append ":"
+    _bcp_append_raw "\w" "\${PROMPT_DIR_COLOR:-$color};1"
     bcp_append "\$ "
 }
 

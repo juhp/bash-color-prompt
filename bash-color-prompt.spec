@@ -33,7 +33,7 @@ cp -p %{SOURCE0} %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE4} .
 sed -i -e "s/@BASHCOLORVERSION@/%{version}/" bash-color-prompt.sh
 
 source ./bash-color-prompt.sh
-bcp_static _bcp_default_layout
+bcp_static _bcp_static_layout
 export PS1
 perl -i -pe 's/\@BCP_STATIC_PS1\@/$ENV{PS1}/' bcp-profile.sh
 
