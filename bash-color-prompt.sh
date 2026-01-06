@@ -268,12 +268,12 @@ _bcp_default_layout() {
 
 # Default static layout
 _bcp_static_layout() {
-    local color="33"
+    local color="32"
     # 0.7 used [[ "$USER" = "root" ]]
     if [[ $EUID -eq 0 ]]; then color="35"; fi
     _bcp_append_raw "\u@\h" "\${PROMPT_COLOR:-$color};1"
     bcp_append ":"
-    _bcp_append_raw "\w" "\${PROMPT_DIR_COLOR:-$color};1"
+    _bcp_append_raw "\w" "\${PROMPT_DIR_COLOR:-\${PROMPT_COLOR:-$color}};1"
     bcp_append "\$ "
 }
 
