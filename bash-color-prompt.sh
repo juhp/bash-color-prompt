@@ -304,6 +304,21 @@ _bcp_save_ret() {
     fi
 }
 
+# Simple static PS1 without PROMPT_COMMAND updating
+# which can be used instead of dynamic bcp_init
+# takes optional layout function (default _bcp_default_layout})
+bcp_static() {
+    local layout=$1
+
+    _bcp_buffer=""
+    if declare -f "$layout" > /dev/null; then
+        $layout
+    else
+        _bcp_default_layout
+    fi
+    PS1="${_bcp_buffer}"
+}
+
 # bcp_init
 # Activates the library. Call this once at the end of your .bashrc
 # Usage: bcp_init
