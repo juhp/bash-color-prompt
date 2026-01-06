@@ -16,12 +16,10 @@ if [[ -n "${BASH_VERSION}" && -z "${bash_color_prompt_disable}" &&
                       "$TERM" == "linux" ) ) ||
               -n "$bash_color_prompt_force" ]]; then
 
-        # TODO generate static PS1 at buildtime
-        # shellcheck source=bash-color-prompt.sh
-        source /usr/share/bash-color-prompt/bcp.sh
-
-        # FIXME use:
-        # if [[ -n "${NO_COLOR}" && -z "${BASH_PROMPT_USE_COLOR}" || -n "${BASH_PROMPT_NO_COLOR}" ]]; then
-        bcp_static _bcp_default_layout
+        if [[ -n "${NO_COLOR}" && -z "${BASH_PROMPT_USE_COLOR}" || -n "${BASH_PROMPT_NO_COLOR}" ]]; then
+            PS1='\u@\h:\w\$ '
+        else
+            PS1='@BCP_STATIC_PS1@'
+        fi
     fi
 fi

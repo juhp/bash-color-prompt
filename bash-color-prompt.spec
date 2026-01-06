@@ -13,6 +13,7 @@ Source2:        README.md
 Source3:        COPYING
 Source4:        example.bashrc.sh
 BuildArch:      noarch
+BuildRequires:  perl
 %if %{with tests}
 BuildRequires:  bats
 BuildRequires:  git-core
@@ -30,6 +31,11 @@ cp -p %{SOURCE0} %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE4} .
 
 %build
 sed -i -e "s/@BASHCOLORVERSION@/%{version}/" bash-color-prompt.sh
+
+source ./bash-color-prompt.sh
+bcp_static _bcp_default_layout
+export PS1
+perl -i -pe 's/\@BCP_STATIC_PS1\@/$ENV{PS1}/' bcp-profile.sh
 
 
 %install
@@ -59,5 +65,8 @@ BASH_COLOR_PROMPT_DIR=%{buildroot}%{profiledir} bats --timing --gather-test-outp
 
 
 %changelog
+* Wed Jan 07 2026 Jens Petersen <petersen@redhat.com> - 0.92-0.1
+- profile: generate static PS1 at buildtime
+
 * Tue Jan 06 2026 Jens Petersen <petersen@redhat.com> - 0.90-0.1
 - initial package of major new version
