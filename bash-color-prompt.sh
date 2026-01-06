@@ -102,7 +102,7 @@ bcp_append() {
     # Assembly
     if [[ -n "$ansi_sequence" ]]; then
         # Strip trailing semicolon
-        _bcp_buffer+="\[\033[${ansi_sequence%;}m\]${text}\[\033[${3-0}m\]"
+        _bcp_buffer+="\[\e[${ansi_sequence%;}m\]${text}\[\e[${3-0}m\]"
     else
         _bcp_buffer+="${text}"
     fi
