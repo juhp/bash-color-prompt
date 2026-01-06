@@ -255,11 +255,12 @@ bcp_container() {
 # Default layout (Fallback)
 # Used if the user hasn't defined their own bcp_layout yet.
 _bcp_default_layout() {
-    local exit_code=$1
-    bcp_append "\u@\h" "green;bold"
+    local color="green"
+    # 0.7 used [ "$USER" = "root" ]
+    if [[ $EUID -eq 0 ]]; then color="magenta"; fi
+    bcp_append "\u@\h" "$color;bold"
     bcp_append ":"
-    bcp_append "\w" "green;bold"
-    bcp_segment_status "$exit_code"
+    bcp_append "\w" "$color;bold"
     bcp_append "\$ "
 }
 
