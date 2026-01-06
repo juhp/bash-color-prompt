@@ -18,6 +18,10 @@ if [[ -n "${BASH_VERSION}" && -z "${bash_color_prompt_disable}" &&
 
         if [[ -n "${NO_COLOR}" && -z "${BASH_PROMPT_USE_COLOR}" || -n "${BASH_PROMPT_NO_COLOR}" ]]; then
             PS1='\u@\h:\w\$ '
+            bcp_setup() {
+                source @BCP_LIBRARY@
+                bcp_init
+            }
         else
             PS1='@BCP_STATIC_PS1@'
         fi
