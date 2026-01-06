@@ -1,7 +1,7 @@
 %bcond tests 0
 
 Name:           bash-color-prompt
-Version:        0.90
+Version:        %(cat VERSION)
 Release:        0.1%{?dist}
 Summary:        Customization Color prompt for Bash
 
