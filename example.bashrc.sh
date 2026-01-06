@@ -3,33 +3,34 @@ source bash-color-prompt.sh
 bcp_layout() {
     local exit_code=$1
 
+    # show duration of commands
     bcp_duration 1 "yellow" "took "  "\n"
+    # datestamp
     bcp_append "\t \D{%b %-d (%a)}\n" "dim;reverse"
 
-    bcp_container
-    # -- Segment: User+Host (Green if user, Red if Root) --
-    local user_color="green"
-    if [[ $EUID -eq 0 ]]; then user_color="red"; fi
-
-    bcp_append "\u@\h" "$user_color;bold"
+    # SHLVL
     bcp_shlvl "bgmagenta" "^"
     bcp_append " "
 
-    # -- Segment: Directory (Blue) --
+    # hexagon
+    bcp_container
+    # user@host
+    local user_color="green"
+    if [[ $EUID -eq 0 ]]; then user_color="red"; fi
+    bcp_append "\u@\h" "$user_color;bold"
+
+    # directory
     bcp_append "\w" "blue"
 
-    ## already done by vte.sh
-    # bcp_title "\u@\h"
-
-    # -- Segment: Git Status --
+    # git status
     bcp_git_branch " " "magenta" "yellow"
 
-    # -- custom status indicator --
+    # status indicator
     if [[ $exit_code -ne 0 ]]; then
         bcp_append " ✘$exit_code" "red;bold"
     fi
 
-    # -- Segment: The actual prompt char --
+    # actual prompt char
     bcp_append "\n\$ " "default"
 }
 
