@@ -157,10 +157,10 @@ bcp_git_branch() {
     if [[ -n "$(_bcp_is_git_dirty)" ]]; then
         # Dirty State: Branch name + Dirty Marker
         # You can customize the symbol here (e.g., *, ±, ✗)
-        bcp_append " ($branch*)" "$dirty_color"
+        bcp_append "($branch*)" "$dirty_color"
     else
         # Clean State
-        bcp_append " ($branch)" "$clean_color"
+        bcp_append "($branch)" "$clean_color"
     fi
 }
 
