@@ -233,8 +233,8 @@ bcp_shlvl() {
 }
 
 bcp_container() {
-    if [ -n "$container" ]; then
-        if [ "$DESKTOP_SESSION" = "gnome" ]; then
+    if [[ -n "$container" ]]; then
+        if [[ "$DESKTOP_SESSION" = "gnome" ]]; then
             bcp_append "${1:-⬢}"
         else
             bcp_append "${1:-⬢ }"
@@ -248,7 +248,7 @@ bcp_container() {
 # Used if the user hasn't defined their own bcp_layout yet.
 _bcp_default_layout() {
     local color="green"
-    # 0.7 used [ "$USER" = "root" ]
+    # 0.7 used [[ "$USER" = "root" ]]
     if [[ $EUID -eq 0 ]]; then color="magenta"; fi
     bcp_append "\u@\h" "$color;bold"
     bcp_append ":"

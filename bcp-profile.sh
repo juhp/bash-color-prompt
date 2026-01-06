@@ -21,7 +21,7 @@ if [[ -n "${BASH_VERSION}" && -z "${bash_color_prompt_disable}" &&
         source /usr/share/bash-color-prompt/bcp.sh
 
         # FIXME use:
-        # if [ -n "${NO_COLOR}" -a -z "${BASH_PROMPT_USE_COLOR}" -o -n "${BASH_PROMPT_NO_COLOR}" ]; then
+        # if [[ -n "${NO_COLOR}" && -z "${BASH_PROMPT_USE_COLOR}" || -n "${BASH_PROMPT_NO_COLOR}" ]]; then
         bcp_static _bcp_default_layout
     fi
 fi
