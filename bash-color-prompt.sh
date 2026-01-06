@@ -332,8 +332,10 @@ bcp_init() {
 
     else
         # Prevent double-sourcing
+        # shellcheck disable=SC2128
         if [[ "$PROMPT_COMMAND" == *"_bcp_build_prompt"* ]]; then return; fi
 
+        # shellcheck disable=SC2128
         if [[ -z "$PROMPT_COMMAND" ]]; then
             PROMPT_COMMAND="_bcp_save_ret; _bcp_build_prompt"
         else
