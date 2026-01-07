@@ -182,8 +182,7 @@ bcp_segment_status() {
 bcp_title() {
     # \e]0; = Start window title sequence
     # \a    = End sequence
-    # \[...\] is NOT needed here because this doesn't print to the buffer width
-    _bcp_buffer+="\e]0;$1\a"
+    echo -n -e "\e]0;$1\a"
 }
 
 # Usage: bcp_duration [min_ms] [color] [prefix]
