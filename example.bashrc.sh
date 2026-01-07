@@ -22,7 +22,8 @@ bcp_layout() {
     # user@host
     local user_color="green"
     if [[ $EUID -eq 0 ]]; then user_color="red"; fi
-    bcp_append "\u@\h" "$user_color;bold"
+    bcp_append "\h" "$user_color;bold"
+    bcp_title "\h:\w"
 
     # directory
     bcp_append "\w" "blue"

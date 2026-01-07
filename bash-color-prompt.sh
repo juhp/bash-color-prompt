@@ -182,7 +182,7 @@ bcp_segment_status() {
 bcp_title() {
     # \e]0; = Start window title sequence
     # \a    = End sequence
-    echo -n -e "\e]0;$1\a"
+    echo -n -e "\e]0;${1@P}\a"
 }
 
 # Usage: bcp_duration [min_ms] [color] [prefix]
