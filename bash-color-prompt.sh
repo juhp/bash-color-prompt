@@ -221,7 +221,11 @@ bcp_duration() {
 
     local human_time=""
     # Formatting Logic
-    if (( dur >= 60 )); then
+    if (( dur >= 3600 )); then
+        local hour=$(( dur / 3600 ))
+        local min=$(( (dur % 3600) / 60 ))
+        human_time+="${hour}h ${min}m "
+    elif (( dur >= 60 )); then
         local min=$(( dur / 60 ))
         human_time+="${min}m "
     fi
