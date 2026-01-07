@@ -1,5 +1,6 @@
 BCP=bash-color-prompt.sh
 if [[ -r $BCP ]]; then
+    # shellcheck source=bash-color-prompt.sh
     source $BCP
 fi
 unset BCP
