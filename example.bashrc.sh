@@ -1,4 +1,8 @@
-source bash-color-prompt.sh
+BCP=bash-color-prompt.sh
+if [[ -r $BCP ]]; then
+    source $BCP
+fi
+unset BCP
 
 bcp_layout() {
     local exit_code=$1
