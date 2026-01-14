@@ -235,6 +235,9 @@ bcp_duration() {
         local min=$(( dur / 60 ))
         local sec=$(( dur % 60 ))
         human_time="${min}m ${sec}s"
+    else
+        local sec=$(( dur % 60 ))
+        human_time="${sec}s"
     fi
     _bcp_last_duration_s=""
 
