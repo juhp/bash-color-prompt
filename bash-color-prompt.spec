@@ -31,7 +31,7 @@ cp -p %{SOURCE0} %{SOURCE1} %{SOURCE2} %{SOURCE3} %{SOURCE4} .
 
 %build
 sed -i -e "s/@BASHCOLORVERSION@/%{version}/" bash-color-prompt.sh
-sed -i -e 's!@BCP_LIBRARY@!%{_datadir}/bash-color-prompt!' bcp-profile.sh
+sed -i -e 's!@BCP_LIBRARY@!%{_datadir}/bash-color-prompt/bcp.sh!' bcp-profile.sh
 
 source ./bash-color-prompt.sh
 bcp_static _bcp_static_layout
