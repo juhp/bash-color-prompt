@@ -241,7 +241,11 @@ bcp_duration() {
     fi
     _bcp_last_duration_s=""
 
-    bcp_append "${prefix}${human_time}${suffix}" "$color"
+    if [[ -n "${human_time}" ]]; then
+        bcp_append "${prefix}${human_time}${suffix}" "$color"
+    else
+        bcp_append "no timing"
+    fi
 }
 
 # Usage: bcp_shlvl [color] [prefix_char]
