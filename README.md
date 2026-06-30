@@ -33,7 +33,11 @@ Before adding to your `bashrc`, you can test it out in bash with just:
 
 Note that bcp's functions may still be subject to change at this time.
 
+## Requirements
+Currently requires Bash 5.1 or later.
+
 ## Help and Contribute
 Please open an issue in <https://github.com/juhp/bash-color-prompt>.
 
+## License
 bash-color-prompt is distributed under the GPL license version 3 or later.

@@ -339,21 +339,16 @@ bcp_static() {
     local layout=$1
 
     # Remove dynamic hooks if bcp_init was called previously
-    if (( BASH_VERSINFO[0] > 5 )) || (( BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1 )); then
-        if [[ "$(declare -p PROMPT_COMMAND 2>/dev/null)" == "declare -a"* ]]; then
-            local cmd new_cmd=()
-            for cmd in "${PROMPT_COMMAND[@]}"; do
-                [[ "$cmd" == "_bcp_save_ret" || "$cmd" == "_bcp_build_prompt" ]] && continue
-                new_cmd+=("$cmd")
-            done
-            PROMPT_COMMAND=("${new_cmd[@]}")
-        fi
+    if [[ "$(declare -p PROMPT_COMMAND 2>/dev/null)" == "declare -a"* ]]; then
+        local cmd new_cmd=()
+        for cmd in "${PROMPT_COMMAND[@]}"; do
+            [[ "$cmd" == "_bcp_save_ret" || "$cmd" == "_bcp_build_prompt" ]] && continue
+            new_cmd+=("$cmd")
+        done
+        PROMPT_COMMAND=("${new_cmd[@]}")
     else
-        # shellcheck disable=SC2128
         PROMPT_COMMAND="${PROMPT_COMMAND//_bcp_save_ret; /}"
-        # shellcheck disable=SC2128
         PROMPT_COMMAND="${PROMPT_COMMAND//; _bcp_build_prompt/}"
-        # shellcheck disable=SC2128
         PROMPT_COMMAND="${PROMPT_COMMAND//_bcp_build_prompt/}"
     fi
 
@@ -370,35 +365,16 @@ bcp_static() {
 # Activates the library. Call this once at the end of your .bashrc
 # Usage: bcp_init
 bcp_init() {
-    # Bash 5.1+ supports PROMPT_COMMAND array
-    if (( BASH_VERSINFO[0] > 5 )) || (( BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1 )); then
-        # convert to an array if necessary
-        if [[ "$(declare -p PROMPT_COMMAND 2>/dev/null)" != "declare -a"* ]]; then
-            PROMPT_COMMAND=(${PROMPT_COMMAND:+"$PROMPT_COMMAND"})
-        fi
-
-        # Prepend our Capture Function (so it runs first)
-        # We ensure it isn't already there to prevent dupes
+    if [[ "$(declare -p PROMPT_COMMAND 2>/dev/null)" == "declare -a"* ]]; then
         if [[ "${PROMPT_COMMAND[*]}" != *"_bcp_save_ret"* ]]; then
             PROMPT_COMMAND=("_bcp_save_ret" "${PROMPT_COMMAND[@]}")
         fi
-
-        # Append our Build Function (so it sets PS1 last)
         if [[ "${PROMPT_COMMAND[*]}" != *"_bcp_build_prompt"* ]]; then
             PROMPT_COMMAND+=("_bcp_build_prompt")
         fi
-
     else
-        # Prevent double-sourcing
-        # shellcheck disable=SC2128
-        if [[ "$PROMPT_COMMAND" == *"_bcp_build_prompt"* ]]; then return; fi
-
-        # shellcheck disable=SC2128
-        if [[ -z "$PROMPT_COMMAND" ]]; then
-            PROMPT_COMMAND="_bcp_save_ret; _bcp_build_prompt"
-        else
-            # Inject capture at start, builder at end
-            PROMPT_COMMAND="_bcp_save_ret; $PROMPT_COMMAND; _bcp_build_prompt"
+        if [[ "$PROMPT_COMMAND" != *"_bcp_build_prompt"* ]]; then
+            PROMPT_COMMAND="_bcp_save_ret; ${PROMPT_COMMAND:+$PROMPT_COMMAND; }_bcp_build_prompt"
         fi
     fi
 }
