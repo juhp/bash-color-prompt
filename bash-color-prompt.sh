@@ -68,8 +68,7 @@ _bcp_timer_file=""
 
 # Triggered by PS0 (before command runs)
 _bcp_on_exec() {
-    # Capture start time
-    date +%s > "$_bcp_timer_file"
+    printf '%s\n' "$EPOCHSECONDS" > "$_bcp_timer_file"
 }
 
 # Public API
@@ -185,9 +184,9 @@ bcp_title() {
     echo -n -e "\e]0;${1@P}\a"
 }
 
-# Usage: bcp_duration [min_ms] [color] [prefix]
+# Usage: bcp_duration [min_seconds] [color] [prefix] [suffix]
 # Example: bcp_duration 2 "yellow" "took " "\n"
-# (Only shows if command took longer than 2000ms / 2 seconds)
+# (only show if command takes longer than 2s)
 bcp_duration() {
     if [[ -z "$_bcp_timer_file" ]]; then
         # Determine the best location for the timer file
@@ -327,8 +326,7 @@ _bcp_save_ret() {
     if [[ -r "$_bcp_timer_file" ]]; then
         local start; start=$(<"$_bcp_timer_file")
         rm -f "$_bcp_timer_file"
-        local now; now=$(date +%s)
-        _bcp_last_duration_s=$((now - start))
+        _bcp_last_duration_s=$(( EPOCHSECONDS - start ))
     else
         _bcp_last_duration_s=""
     fi
