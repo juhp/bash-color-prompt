@@ -334,9 +334,28 @@ _bcp_save_ret() {
 
 # Simple static PS1 without PROMPT_COMMAND updating
 # which can be used instead of dynamic bcp_init
-# takes optional layout function (default _bcp_default_layout})
+# takes optional layout function (default _bcp_default_layout)
 bcp_static() {
     local layout=$1
+
+    # Remove dynamic hooks if bcp_init was called previously
+    if (( BASH_VERSINFO[0] > 5 )) || (( BASH_VERSINFO[0] == 5 && BASH_VERSINFO[1] >= 1 )); then
+        if [[ "$(declare -p PROMPT_COMMAND 2>/dev/null)" == "declare -a"* ]]; then
+            local cmd new_cmd=()
+            for cmd in "${PROMPT_COMMAND[@]}"; do
+                [[ "$cmd" == "_bcp_save_ret" || "$cmd" == "_bcp_build_prompt" ]] && continue
+                new_cmd+=("$cmd")
+            done
+            PROMPT_COMMAND=("${new_cmd[@]}")
+        fi
+    else
+        # shellcheck disable=SC2128
+        PROMPT_COMMAND="${PROMPT_COMMAND//_bcp_save_ret; /}"
+        # shellcheck disable=SC2128
+        PROMPT_COMMAND="${PROMPT_COMMAND//; _bcp_build_prompt/}"
+        # shellcheck disable=SC2128
+        PROMPT_COMMAND="${PROMPT_COMMAND//_bcp_build_prompt/}"
+    fi
 
     _bcp_buffer=""
     if declare -f "$layout" > /dev/null; then
