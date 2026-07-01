@@ -37,19 +37,9 @@ _bcp_on_exec() {
 # Internal variable (do not touch)
 _bcp_buffer=""
 
-# ----------------------------------------------------------------------------
-# bcp_append
-# Adds text to the prompt buffer with safe color wrapping.
-#
-# Arguments:
-#   $1 : Text to display
-#   $2 : ANSI styling (color/style names or codes) [Optional]
-#   $3 : Style end/reset (defaults to reset) [Optional]
-# ----------------------------------------------------------------------------
-# Usage: bcp_append <text> [fg] [bg] [style]
-# fg/bg/style can be:
-#   - Names: "red", "blue", "bold", "default"
-#   - Raw Codes: "1;33" (Bold Yellow), "38;5;208" (Orange), "101" (Hi-BG)
+# Usage: bcp_append <text> [style] [reset]
+#   style: semicolon-delimited names or codes, e.g. "red;bold", "38;5;208"
+#   reset: ANSI reset code (default: 0 = full reset; empty string to suppress)
 bcp_append() {
     local text="$1"
     if [[ -n "${2:-}" ]]; then
