@@ -74,16 +74,8 @@ _bcp_append_raw() {
 
 # * Git Integration *
 
-# Internal helper to check dirty state quickly
-# Returns: "1" if dirty, "" if clean
 _bcp_is_git_dirty() {
-    # --ignore-submodules: prevents hanging on network checks for submodules
-    local status
-    status=$(git status --porcelain --untracked-files=no --ignore-submodules=dirty 2>/dev/null | head -n1)
-
-    if [[ -n "$status" ]]; then
-        echo "1"
-    fi
+    [[ -n "$(git status --porcelain --untracked-files=no --ignore-submodules=dirty 2>/dev/null)" ]]
 }
 
 # ----------------------------------------------------------------------------
@@ -113,7 +105,7 @@ bcp_git_branch() {
         return
     fi
 
-    if [[ -n "$(_bcp_is_git_dirty)" ]]; then
+    if _bcp_is_git_dirty; then
         bcp_append "$prefix($branch*)" "$dirty_color"
     else
         bcp_append "$prefix($branch)" "$clean_color"
