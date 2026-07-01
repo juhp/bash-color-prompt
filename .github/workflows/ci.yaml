@@ -13,5 +13,5 @@ jobs:
     name: bats tests
     steps:
       - uses: actions/checkout@v7
-      - run: sudo dnf install bats
+      - run: sudo dnf install -y bats
       - run: bats --timing --gather-test-outputs-in logs tests
