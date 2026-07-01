@@ -2,65 +2,26 @@ export BASH_COLOR_PROMPT_VERSION=@BASHCOLORVERSION@
 
 # Internal functions
 
-# Translates color names to ANSI numbers
-# Returns valid numeric codes (e.g., "red" -> "1") or empty string
-_bcp_get_ansi_num() {
-    case "$1" in
-        [0-9])     echo "$1" ;;
-        [1-9][0-9]) echo "$1" ;;
-        [1-2][0-9][0-9]) echo "$1" ;;
-        bold)      echo "1" ;;
-        dim)       echo "2" ;;
-        italic)    echo "3" ;;
-        underline) echo "4" ;;
-        blink)     echo "5" ;;
-        rapid)     echo "6" ;;
-        reverse)   echo "7" ;;
-        hidden)    echo "8" ;;
-        black)     echo "30" ;;
-        red)       echo "31" ;;
-        green)     echo "32" ;;
-        yellow)    echo "33" ;;
-        blue)      echo "34" ;;
-        magenta)   echo "35" ;;
-        cyan)      echo "36" ;;
-        white)     echo "37" ;;
-        default)   echo "39" ;;
-        bgblack)   echo "40" ;;
-        bgred)     echo "41" ;;
-        bggreen)   echo "42" ;;
-        bgyellow)  echo "43" ;;
-        bgblue)    echo "44" ;;
-        bgmagenta) echo "45" ;;
-        bgcyan)    echo "46" ;;
-        bgwhite)   echo "47" ;;
-        bgdefault) echo "49" ;;
-        *)         echo ""  ;; # Unknown or empty
-    esac
-}
+# Color/style name → ANSI code lookup
+declare -A _bcp_ansi=(
+    [bold]=1 [dim]=2 [italic]=3 [underline]=4
+    [blink]=5 [rapid]=6 [reverse]=7 [hidden]=8
+    [black]=30 [red]=31 [green]=32 [yellow]=33
+    [blue]=34 [magenta]=35 [cyan]=36 [white]=37 [default]=39
+    [bgblack]=40 [bgred]=41 [bggreen]=42 [bgyellow]=43
+    [bgblue]=44 [bgmagenta]=45 [bgcyan]=46 [bgwhite]=47 [bgdefault]=49
+)
 
-# _bcp_parse_tokens <input_string>
-# Example: _bcp_parse_tokens "red;bold"  -> returns "31;1;"
-# Example: _bcp_parse_tokens "bgblue;bold" -> returns "44;1;"
+# _bcp_parse_tokens "red;bold" -> _bcp_parsed="31;1;"
+# Named colors are resolved; numeric codes pass through as-is
 _bcp_parse_tokens() {
-    local input="$1"
-    local output=""
-
-    # Split string by semicolon into an array
-    local IFS=';'
-    local tokens
-    read -ra tokens <<< "$input"
-
+    local IFS=';' token
+    local -a tokens
+    read -ra tokens <<< "$1"
+    _bcp_parsed=""
     for token in "${tokens[@]}"; do
-        # Is it a named COLOR? (red, blue, etc.)
-        local c_code
-        c_code=$(_bcp_get_ansi_num "$token")
-        if [[ -n "$c_code" ]]; then
-            output+="${c_code};"
-        fi
+        _bcp_parsed+="${_bcp_ansi[$token]:-$token};"
     done
-
-    echo "$output"
 }
 
 # Internal variable (do not touch)
@@ -91,17 +52,9 @@ _bcp_buffer=""
 #   - Raw Codes: "1;33" (Bold Yellow), "38;5;208" (Orange), "101" (Hi-BG)
 bcp_append() {
     local text="$1"
-    local ansi_input="${2:-}"
-    local ansi_sequence=""
-
-    # Parse ANSI names or codes
-    if [[ -n "$ansi_input" ]]; then
-        ansi_sequence+=$(_bcp_parse_tokens "$ansi_input")
-    fi
-    # Assembly
-    if [[ -n "$ansi_sequence" ]]; then
-        # Strip trailing semicolon
-        _bcp_buffer+="\[\e[${ansi_sequence%;}m\]${text}\[\e[${3-0}m\]"
+    if [[ -n "${2:-}" ]]; then
+        _bcp_parse_tokens "$2"
+        _bcp_buffer+="\[\e[${_bcp_parsed%;}m\]${text}\[\e[${3-0}m\]"
     else
         _bcp_buffer+="${text}"
     fi
