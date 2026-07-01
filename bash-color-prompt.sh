@@ -3,7 +3,7 @@ BASH_COLOR_PROMPT_VERSION=@BASHCOLORVERSION@
 # Internal functions
 
 # Color/style name → ANSI code lookup
-declare -A _bcp_ansi=(
+declare -gA _bcp_ansi=(
     [bold]=1 [dim]=2 [italic]=3 [underline]=4
     [blink]=5 [rapid]=6 [reverse]=7 [hidden]=8
     [black]=30 [red]=31 [green]=32 [yellow]=33
