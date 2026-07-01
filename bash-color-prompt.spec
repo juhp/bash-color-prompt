@@ -34,7 +34,7 @@ sed -i -e "s/@BASHCOLORVERSION@/%{version}/" bash-color-prompt.sh
 sed -i -e 's!@BCP_LIBRARY@!%{_datadir}/bash-color-prompt/bcp.sh!' bcp-profile.sh
 
 source ./bash-color-prompt.sh
-bcp_static _bcp_static_layout
+bcp_static _bcp_compat_layout
 export PS1
 perl -i -pe 's/\@BCP_STATIC_PS1\@/$ENV{PS1}/' bcp-profile.sh
 

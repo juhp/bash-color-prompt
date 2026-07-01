@@ -280,8 +280,8 @@ _bcp_default_layout() {
     bcp_append "\$ "
 }
 
-# Default static layout
-_bcp_static_layout() {
+# Old compat layout
+_bcp_compat_layout() {
     local color="32"
     # 0.7 used [[ "$USER" = "root" ]]
     if [[ $EUID -eq 0 ]]; then color="35"; fi
