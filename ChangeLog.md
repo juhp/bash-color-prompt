@@ -1,2 +1,2 @@
-# 0.90
-- initial experimental release
+# 0.95
+- initial release of rewrite

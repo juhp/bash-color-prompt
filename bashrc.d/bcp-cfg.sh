@@ -1,15 +1,10 @@
-BCP=bash-color-prompt.sh
-if [[ -r $BCP ]]; then
-    # shellcheck source=bash-color-prompt.sh
-    source $BCP
-fi
-unset BCP
+bcp_setup
 
 bcp_layout() {
     local exit_code=$1
 
     # show duration of commands
-    bcp_duration 1 "yellow" "took "  "\n"
+    bcp_duration 1 "yellow" "took " "\n"
     # datestamp
     bcp_append "\t \D{%b %-d (%a)}\n" "dim;reverse"
 
@@ -39,5 +34,3 @@ bcp_layout() {
     # actual prompt char
     bcp_append "\n\$ " "default"
 }
-
-bcp_init

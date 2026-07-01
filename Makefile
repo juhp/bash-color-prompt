@@ -1,2 +1,2 @@
 shellcheck:
-	shellcheck -s bash bash-color-prompt.sh bcp-profile.sh example.bashrc.sh
+	shellcheck -s bash bash-color-prompt.sh profile.d/bcp-profile.sh bashrc.d/example.bashrc.sh
