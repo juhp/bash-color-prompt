@@ -1,0 +1,16 @@
+name: test
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: fedora:latest
+    name: bats tests
+    steps:
+      - uses: actions/checkout@v7
+      - run: sudo dnf install bats
+      - run: bats --timing --gather-test-outputs-in logs tests
