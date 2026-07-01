@@ -8,7 +8,8 @@ on:
       - main
 jobs:
   build:
-    runs-on: fedora:latest
+    runs-on: ubuntu-latest
+    container: fedora:latest
     name: bats tests
     steps:
       - uses: actions/checkout@v7
