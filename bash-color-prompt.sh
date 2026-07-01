@@ -163,33 +163,28 @@ bcp_duration() {
         return
     fi
 
-    local human_time=""
-    # Formatting Logic
+    _bcp_last_duration_s=""
+
+    local human_time
     local daysec=$(( 24 * 3600 ))
     if (( dur >= daysec)); then
         local day=$(( dur / daysec ))
         local hour=$(( (dur % daysec) / 3600 ))
         local min=$(( (dur % 3600) / 60 ))
-        human_time="${day}d ${hour}h ${min}m "
+        human_time="${day}d ${hour}h ${min}m"
     elif (( dur >= 3600 )); then
         local hour=$(( dur / 3600 ))
         local min=$(( (dur % 3600) / 60 ))
-        human_time="${hour}h ${min}m "
+        human_time="${hour}h ${min}m"
     elif (( dur >= 60 )); then
         local min=$(( dur / 60 ))
         local sec=$(( dur % 60 ))
         human_time="${min}m ${sec}s"
     else
-        local sec=$(( dur % 60 ))
-        human_time="${sec}s"
+        human_time="${dur}s"
     fi
-    _bcp_last_duration_s=""
 
-    if [[ -n "${human_time}" ]]; then
-        bcp_append "${prefix}${human_time}${suffix}" "$color"
-    else
-        bcp_append "no timing"
-    fi
+    bcp_append "${prefix}${human_time}${suffix}" "$color"
 }
 
 # Usage: bcp_shlvl [color] [prefix_char]
