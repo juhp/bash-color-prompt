@@ -39,7 +39,7 @@ See [bashrc.d/bcp-cfg.sh](https://github.com/juhp/bash-color-prompt/blob/main/ba
 Note that bcp's functions may still be subject to change at this time.
 
 ## More interesting example
-Before adding to your `bashrc`, you can also test this more complex example
+Before adding to your `bashrc`, you can also test this example
 in a bash session with:
 `source examples/local.bashrc.sh`
 

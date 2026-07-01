@@ -10,7 +10,6 @@ bcp_layout() {
 
     # SHLVL
     bcp_shlvl "bgmagenta" "^"
-    bcp_append " "
 
     # hexagon
     bcp_container
