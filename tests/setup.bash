@@ -1,5 +1,6 @@
 setup() {
     _bcp_buffer=""
+    _bcp_pending_reset=""
     _bcp_timer_file=""
     _bcp_last_duration_s=""
     _bcp_saved_ret=""

@@ -34,8 +34,9 @@ _bcp_on_exec() {
 
 # Public API
 
-# Internal variable (do not touch)
+# Internal variables (do not touch)
 _bcp_buffer=""
+_bcp_pending_reset=""
 
 # Usage: bcp_append <text> [style] [reset]
 #   style: semicolon-delimited names or codes, e.g. "red;bold", "38;5;208"
@@ -44,9 +45,26 @@ bcp_append() {
     local text="$1"
     if [[ -n "${2:-}" ]]; then
         _bcp_parse_tokens "$2"
-        _bcp_buffer+="\[\e[${_bcp_parsed%;}m\]${text}\[\e[${3-0}m\]"
+        local style="${_bcp_parsed%;}m"
+        if [[ -n "$_bcp_pending_reset" ]]; then
+            _bcp_buffer+="\[\e[${_bcp_pending_reset};${style}\]${text}"
+        else
+            _bcp_buffer+="\[\e[${style}\]${text}"
+        fi
+        _bcp_pending_reset="${3-0}"
     else
+        if [[ -n "$_bcp_pending_reset" ]]; then
+            _bcp_buffer+="\[\e[${_bcp_pending_reset}m\]"
+            _bcp_pending_reset=""
+        fi
         _bcp_buffer+="${text}"
+    fi
+}
+
+_bcp_flush_pending() {
+    if [[ -n "$_bcp_pending_reset" ]]; then
+        _bcp_buffer+="\[\e[${_bcp_pending_reset}m\]"
+        _bcp_pending_reset=""
     fi
 }
 
@@ -229,6 +247,7 @@ _bcp_build_prompt() {
 
     # 1. Reset the buffer for the new prompt
     _bcp_buffer=""
+    _bcp_pending_reset=""
 
     # 2. Call the user's layout function (Dependency Injection)
     if declare -f bcp_layout > /dev/null; then
@@ -241,6 +260,7 @@ _bcp_build_prompt() {
 
     # 3. Apply the buffer to PS1
     # We do not use 'export' here to avoid unnecessary environment overhead
+    _bcp_flush_pending
     PS1="${_bcp_buffer}"
 }
 
@@ -283,11 +303,13 @@ bcp_static() {
     fi
 
     _bcp_buffer=""
+    _bcp_pending_reset=""
     if declare -f "$layout" > /dev/null; then
         $layout
     else
         _bcp_default_layout
     fi
+    _bcp_flush_pending
     PS1="${_bcp_buffer}"
 }
 
