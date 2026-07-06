@@ -1,9 +1,10 @@
 # Bash Color Prompt (bcp)
 
-This is a new version of Fedora's
+This project provides a color prompt for Bash.
+It is a rework of the original Fedora
 [bash-color-prompt](https://src.fedoraproject.org/rpms/shell-color-prompt)
 package with a cleaner declarative builder pattern approach,
-which makes it easy for users to create clean highly customized bash prompts.
+which makes it easy to create clean highly customized bash prompts.
 
 ## How to try it out
 Execute or add:
@@ -19,7 +20,7 @@ to `~/.bashrc` say.
 By default it uses the `_bcp_default_layout()` configuration,
 which gives a green bold prompt: `user@localhost:~$ `,
 with the same appearance as the current default Fedora prompt.
-It could be made to support default prompts for other OS's later perhaps.
+It could be made to support default prompts for other OS's.
 
 ## System installation
 - `bcp-profile.sh` should be installed as `/etc/profile.d/bash-color-prompt.sh`
