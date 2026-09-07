@@ -17,11 +17,10 @@ load setup
     [[ "$_bcp_buffer" == *'\w'* ]]
 }
 
-@test "_bcp_default_layout: ends with dollar-space" {
+@test "_bcp_default_layout: ends with escaped dollar so root gets hash" {
     _bcp_buffer=""
     _bcp_default_layout
-    # bcp_append "\$ " — in double quotes \$ is literal $
-    [[ "$_bcp_buffer" == *'$ '* ]]
+    [[ "$_bcp_buffer" == *'\$ '* ]]
 }
 
 @test "_bcp_default_layout: uses bold styling" {

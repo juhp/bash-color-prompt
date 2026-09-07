@@ -225,7 +225,7 @@ _bcp_default_layout() {
     bcp_append "\u@\h" "$color;bold"
     bcp_append ":"
     bcp_append "\w" "$color;bold"
-    bcp_append "\$ "
+    bcp_append '\$ '
 }
 
 # Old compat layout
@@ -236,7 +236,7 @@ _bcp_compat_layout() {
     _bcp_append_raw "\u@\h" "\${PROMPT_COLOR:-$color};1"
     bcp_append ":"
     _bcp_append_raw "\w" "\${PROMPT_DIR_COLOR:-\${PROMPT_COLOR:-$color}};1"
-    bcp_append "\$ "
+    bcp_append '\$ '
 }
 
 # Internal driver function called every time the prompt needs refreshing

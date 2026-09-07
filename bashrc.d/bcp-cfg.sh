@@ -31,5 +31,5 @@ bcp_layout() {
     fi
 
     # actual prompt char
-    bcp_append "\n\$ " "default"
+    bcp_append '\n\$ ' "default"
 }
