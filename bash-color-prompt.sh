@@ -229,13 +229,13 @@ _bcp_default_layout() {
 }
 
 # Old compat layout
+# Color codes stay in PS1 so a static prompt (built as a regular user at
+# package build time) still switches for root via promptvars expansion.
+# Override with PROMPT_COLOR / PROMPT_DIR_COLOR.
 _bcp_compat_layout() {
-    local color="32"
-    # 0.7 used [[ "$USER" = "root" ]]
-    if [[ $EUID -eq 0 ]]; then color="35"; fi
-    _bcp_append_raw "\u@\h" "\${PROMPT_COLOR:-$color};1"
+    _bcp_append_raw '\u@\h' '${PROMPT_COLOR:-$((EUID==0?35:32))};1'
     bcp_append ":"
-    _bcp_append_raw "\w" "\${PROMPT_DIR_COLOR:-\${PROMPT_COLOR:-$color}};1"
+    _bcp_append_raw '\w' '${PROMPT_DIR_COLOR:-${PROMPT_COLOR:-$((EUID==0?35:32))}};1'
     bcp_append '\$ '
 }
 
