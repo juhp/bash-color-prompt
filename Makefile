@@ -3,3 +3,6 @@ shellcheck:
 
 test:
 	bats tests
+
+snapshot:
+	git archive --prefix=bash-color-prompt-$$(date +%Y%m%dT%H%M%S)/ -o bash-color-prompt-$$(date +%Y%m%dT%H%M%S).tar.gz HEAD
