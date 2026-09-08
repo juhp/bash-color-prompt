@@ -232,10 +232,11 @@ _bcp_default_layout() {
 # Color codes stay in PS1 so a static prompt (built as a regular user at
 # package build time) still switches for root via promptvars expansion.
 # Override with PROMPT_COLOR / PROMPT_DIR_COLOR.
+# Usage: `_bcp_compat_layout 1` for bold
 _bcp_compat_layout() {
-    _bcp_append_raw '\u@\h' '${PROMPT_COLOR:-$((EUID==0?35:32))};1'
+    _bcp_append_raw '\u@\h' "\${PROMPT_COLOR:-\$((EUID==0?35:32))${1:+;$1}}"
     bcp_append ":"
-    _bcp_append_raw '\w' '${PROMPT_DIR_COLOR:-${PROMPT_COLOR:-$((EUID==0?35:32))}};1'
+    _bcp_append_raw '\w' "\${PROMPT_DIR_COLOR:-\${PROMPT_COLOR:-\$((EUID==0?35:32))${1:+;$1}}}"
     bcp_append '\$ '
 }
 
@@ -285,6 +286,7 @@ _bcp_save_ret() {
 # Simple static PS1 without PROMPT_COMMAND updating
 # which can be used instead of dynamic bcp_init
 # takes optional layout function (default _bcp_default_layout)
+# and additional optional arg for layout
 bcp_static() {
     local layout=$1
 
@@ -305,7 +307,7 @@ bcp_static() {
     _bcp_buffer=""
     _bcp_pending_reset=""
     if declare -f "$layout" > /dev/null; then
-        $layout
+        $layout "$2"
     else
         _bcp_default_layout
     fi

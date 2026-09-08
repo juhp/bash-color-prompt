@@ -19,7 +19,11 @@ if [[ -n "${BASH_VERSION}" && -z "${bash_color_prompt_disable}" &&
         if [[ -n "${NO_COLOR}" && -z "${BASH_PROMPT_USE_COLOR}" || -n "${BASH_PROMPT_NO_COLOR}" ]]; then
             PS1='\u@\h:\w\$ '
         else
-            PS1='@BCP_STATIC_PS1@'
+            if [ "$DESKTOP_SESSION" = "gnome" ]; then
+                PS1='@BCP_STATIC_PS1_BOLD@'
+            else
+                PS1='@BCP_STATIC_PS1@'
+            fi
             bcp_setup() {
                 # shellcheck source=bash-color-prompt.sh
                 source @BCP_LIBRARY@
